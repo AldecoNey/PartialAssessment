@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Parcial 2</title>
+    <link rel="stylesheet" type="text/css" href="/styles/style.css" />
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>Formulario de Vehiculos</h1>
+      <form
+        action="/agregarVehiculo"
+        method="post"
+        onsubmit="return validarMatricula()"
+      >
+        <div class="form-group">
+          <label for="marca">Marca:</label>
+          <input type="text" id="marca" name="marca" class="input-text" />
+        </div>
+
+        <div class="form-group">
+          <label for="modelo">Modelo:</label>
+          <input type="text" id="modelo" name="modelo" class="input-text" />
+        </div>
+
+        <div class="form-group">
+          <label for="nro_chasis">Nro. Chasis:</label>
+          <input
+            type="number"
+            id="nro_chasis"
+            name="nro_chasis"
+            class="input-number"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="matricula">Matricula:</label>
+          <input
+            type="text"
+            id="matricula"
+            name="matricula"
+            class="input-text"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="precio">Precio:</label>
+          <input type="number" id="precio" name="precio" class="input-number" />
+        </div>
+
+        <button type="submit" class="submit-button">Guardar</button>
+      </form>
+
+      <div>
+        <button type="center" class="center" onclick="redirectToMainPage()">
+          F5 despues de guardar/editar
+        </button>
+      </div>
+
+      <h1>Tabla de Vehiculos</h1>
+      <table class="table" border="1">
+        <thead>
+          <tr>
+            <th>Id</th>
+            <th>Marca</th>
+            <th>Modelo</th>
+            <th>Nro. Chasis</th>
+            <th>Matricula</th>
+            <th>Precio</th>
+            <th>Eliminar/Editar</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-body"></tbody>
+      </table>
+
+      <h2>Buscar Vehiculo</h2>
+      <form
+        action="/buscarVehiculo"
+        method="get"
+        onsubmit="return validarBusqueda()"
+      >
+        <div class="form-group">
+          <label for="marcaBusqueda">Buscar por Marca:</label>
+          <input
+            type="text"
+            id="marcaBusqueda"
+            name="marcaBusqueda"
+            class="input-text"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="matriculaBusqueda">Buscar por Matricula:</label>
+          <input
+            type="text"
+            id="matriculaBusqueda"
+            name="matriculaBusqueda"
+            class="input-text"
+          />
+        </div>
+
+        <button type="submit" class="submit-button">Buscar</button>
+      </form>
+
+      <dialog id="modalUpdate" class="update-dialog">
+        <form id="formUpdate" action="/update" method="post">
+          <input type="hidden" id="id" name="id" />
+
+          <div class="form-group">
+            <label for="marca">Marca:</label>
+            <input type="text" id="marca" name="marca" class="input-text" />
+          </div>
+
+          <div class="form-group">
+            <label for="modelo">Modelo:</label>
+            <input type="text" id="modelo" name="modelo" class="input-text" />
+          </div>
+
+          <div class="form-group">
+            <label for="nro_chasis">Nro. Chasis:</label>
+            <input
+              type="number"
+              id="nro_chasis"
+              name="nro_chasis"
+              class="input-number"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="matricula">Matricula:</label>
+            <input
+              type="text"
+              id="matricula"
+              name="matricula"
+              class="input-text"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="precio">Precio:</label>
+            <input
+              type="number"
+              id="precio"
+              name="precio"
+              class="input-number"
+            />
+          </div>
+
+          <button id="hiddenModal" class="cancel-button">Volver</button>
+          <button type="submit" class="submit-button">Editar</button>
+        </form>
+      </dialog>
+    </div>
+
+    <script>
+      function validarBusqueda() {
+        const marcaBusqueda = document.getElementById("marcaBusqueda").value;
+        const matriculaBusqueda =
+          document.getElementById("matriculaBusqueda").value;
+        return true;
+      }
+
+      function validarMatricula() {
+        const matriculaInput = document.getElementById("matricula");
+        const matriculaValue = matriculaInput.value;
+
+        const matriculaList = document.querySelectorAll("td:nth-child(4)");
+        for (let i = 0; i < matriculaList.length; i++) {
+          if (matriculaList[i].innerText === matriculaValue) {
+            alert(
+              "La Matricula ya se encuentra asignado a otro vehiculo. Debe ser unica."
+            );
+            return false;
+          }
+        }
+        return true;
+      }
+
+      function redirectToMainPage() {
+        window.location.href = "http://localhost:3000/";
+      }
+
+      //Mostramos los vehiculos que tenemos en la base de datos
+      fetch("/vehiculos", { method: "GET" })
+        .then((response) => response.json())
+        .then((vehiculos) => {
+          const tablaBody = document.getElementById("tabla-body");
+          vehiculos.forEach((vehiculo) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                        <td>${vehiculo.id}</td>
+                        <td>${vehiculo.marca}</td>
+                        <td>${vehiculo.modelo}</td>
+                        <td>${vehiculo.nro_chasis}</td>
+                        <td>${vehiculo.matricula}</td>
+                        <td>${vehiculo.precio}</td>
+                        <td><button onclick="eliminarVehiculo(${vehiculo.id})">Eliminar</button>
+                          <button id="editarVehiculo" onclick="editarVehiculo(${vehiculo.id})">Editar</button></td>`;
+            tablaBody.appendChild(row);
+          });
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+
+      function eliminarVehiculo(vehiculoId) {
+        fetch(`/eliminarVehiculo/${vehiculoId}`, { method: "DELETE" })
+          .then((response) => {
+            if (response.ok) {
+              location.reload();
+            } else {
+              console.error("Error al eliminar vehiculo");
+            }
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      }
+
+      function editarVehiculo(vehiculoId) {
+        let modalUpdate = document.querySelector("#modalUpdate");
+        let hiddenModal = document.querySelector("#hiddenModal");
+        let formulario = document.querySelector("#formUpdate");
+        let inputMarca = formulario.querySelector("input[name=marca]");
+        let inputModelo = formulario.querySelector("input[name=modelo]");
+        let inputNro_chasis = formulario.querySelector(
+          "input[name=nro_chasis]"
+        );
+        let inputMatricula = formulario.querySelector("input[name=matricula]");
+        let inputPrecio = formulario.querySelector("input[name=precio]");
+        let inputId = formulario.querySelector("input[name=id]");
+
+        hiddenModal.addEventListener("click", () => {
+          modalUpdate.close();
+          window.location.href = "/";
+        });
+        modalUpdate.showModal();
+
+        fetch(`/vehiculos/${vehiculoId}`, { method: "GET" })
+          .then((response) => response.json())
+          .then((vehiculo) => {
+            inputId.value = vehiculo[0].id;
+            inputNombre.value = vehiculo[0].marca;
+            inputApellido.value = vehiculo[0].modelo;
+            inputDni.value = vehiculo[0].nro_chasis;
+            inputSectorLaboral.value = vehiculo[0].matricula;
+            inputSalario.value = vehiculo[0].precio;
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      }
+    </script>
+  </body>
+</html>
